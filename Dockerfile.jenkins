@@ -1,0 +1,35 @@
+FROM jenkins/jenkins:lts
+USER root
+
+# 1. Install system dependencies
+RUN apt-get update && apt-get install -y \
+    lsb-release \
+    ca-certificates \
+    curl \
+    gnupg \
+    python3 \
+    python3-pip \
+    python3-venv \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Install Docker CLI
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && apt-get install -y docker-ce-cli
+
+# 3. Install Semgrep (Globally)
+# We use --break-system-packages to ensure it's available in /usr/local/bin for all users
+RUN pip3 install semgrep --break-system-packages
+
+# 4. Fix permissions for the Jenkins user
+# Adding jenkins to the root group helps with socket access on some setups
+RUN usermod -aG root jenkins
+
+# Ensure the PATH includes common binary locations
+ENV PATH="/usr/local/bin:/usr/bin:/bin:${PATH}"
+
+# Stay as root if you are mounting the docker.sock from Windows
+# This prevents "Permission Denied" errors during the build
+USER root

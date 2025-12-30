@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nodejs-app-project
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: my-app=host.docker.internal:5000/nodejs-app
+    argocd-image-updater.argoproj.io/my-app.update-strategy: latest
+    argocd-image-updater.argoproj.io/my-app.helm.image-name: image.repository
+    argocd-image-updater.argoproj.io/my-app.helm.image-tag: image.tag
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+    argocd-image-updater.argoproj.io/my-app.allow-tags: ".*"
+    argocd-image-updater.argoproj.io/my-app.ignore-tags: ""
+spec:
+  project: default
+  source:
+    repoURL: http://host.docker.internal:3001/root/app-repo.git
+    targetRevision: master
+    path: helm/sample-nodejs
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

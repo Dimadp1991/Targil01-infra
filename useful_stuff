@@ -1,0 +1,95 @@
+# Jenkins is already running!
+# Open browser: http://localhost:8080
+# Use password: a07dbdd96fcb445da5496fc3c81e1ef6
+
+DimaApiToken
+1171eebb7777de71c032212fe88e872ac0
+
+
+
+http://webhook-receiver:9000/webhook
+
+LOCAL_NETWORK_ALLOWLIST = *
+
+this worked for WEBHOOK:
+
+LOCAL_NETWORK_ALLOWLIST = webhook-receiver, 172.18.0.5
+
+
+also this for gogs
+[server]
+DOMAIN       = localhost
+HTTP_PORT    = 3000        # This stays 3000 (internal)
+EXTERNAL_URL = http://localhost:3001/
+
+uppdate /data/gogs/conf/app.ini
+
+docker restart gogs
+
+
+add this in hosts file if needed:
+127.0.0.1  gogs.local
+
+redeploy cmd:
+docker compose up -d --no-deps --build webhook-receiver
+
+docker compose up -d --no-deps --build jenkins
+
+docker compose up -d --no-deps --build gogs
+
+
+docker compose up -d --no-deps --build registry
+docker compose up -d --no-deps --build registry-ui
+
+
+docker compose up -d --force-recreate registry
+
+docker compose up -d --force-recreate webhook-receiver
+
+
+postgres:5432
+
+
+minikube start
+
+
+
+ArgoCD:
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+# Install Image Updater
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/v0.12.2/manifests/install.yaml
+
+kubectl apply -f argocd-ingress.yaml
+
+Start-Process powershell -ArgumentList "minikube tunnel" -WindowStyle Hidden
+addd 127.0.0.1  argocd.local to C:\Windows\System32\drivers\etc\hosts
+
+#port forwarding
+kubectl port-forward svc/argocd-server -n argocd 8081:443
+kubectl port-forward --address 0.0.0.0 -n kube-system service/registry 5001:80
+kubectl port-forward svc/nodejs-app-project-sample-nodejs 4000:80
+
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | wsl base64 -d
+
+
+
+minikube addons enable registry
+minikube addons enable registry-aliases
+kubectl edit configmap registry-aliases -n kube-system
+
+
+
+minikube start --insecure-registry="host.docker.internal:5000"
+
+
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-image-updater
+
+
+minikube image ls --format table
+# 1. Point your terminal to Minikube's Docker (Windows PowerShell)
+& minikube -p minikube docker-env | Invoke-Expression
+
+# 2. Build the image (it will now build INSIDE Minikube)
+docker build -t nodejs-app:v1.0.0 .
+docker build -t nodejs-app:v1.0.0 .

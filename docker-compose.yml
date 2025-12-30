@@ -1,0 +1,105 @@
+services:
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+    container_name: jenkins
+    user: root
+    privileged: true
+    ports:
+      - "8080:8080"
+      - "50000:50000" 
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock 
+    environment:
+      - JENKINS_OPTS=--httpPort=8080
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=gogs
+      - POSTGRES_USER=gogs
+      - POSTGRES_PASSWORD=gogs
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gogs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gogs:
+    image: gogs/gogs:latest
+    container_name: gogs
+    ports:
+      - "3001:3000"  
+      - "10022:22"   # SSH port for Git operations
+    volumes:
+      - gogs_data:/data
+    restart: unless-stopped
+    networks:
+      - app-network
+    environment:
+      - HTTP_PORT=3001 # Tells Gogs to listen on 3001 internally
+      - EXTERNAL_URL=http://localhost:3001
+      - USER_UID=1000
+      - USER_GID=1000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  webhook-receiver:
+    build:
+      context: .
+      dockerfile: Dockerfile.webhook
+    container_name: webhook-receiver
+    ports:
+      - "9000:9000"
+    environment:
+      - DOCKER_BUILDKIT=1
+      - WEBHOOK_PORT=9000
+    volumes:
+      - ./scripts:/scripts
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - app-network
+  
+
+  zot:
+      image: ghcr.io/project-zot/zot-linux-amd64:latest
+      container_name: zot-registry
+      ports:
+        - "5000:5000"
+      volumes:
+        - ./data:/var/lib/zot
+      restart: unless-stopped
+      networks:
+        - app-network
+
+
+volumes:
+  jenkins_home:
+    driver: local
+  gogs_data:
+    driver: local
+  postgres_data:
+    driver: local
+  registry_data:    
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+

@@ -1,0 +1,17 @@
+# Dockerfile for webhook receiver
+FROM node:18-alpine
+
+# Install bash for scripts
+RUN apk add --no-cache bash docker-cli
+
+# Set working directory
+WORKDIR /app
+
+# Copy webhook receiver
+COPY scripts/webhook-receiver.js ./
+
+# Expose port
+EXPOSE 9000
+
+# Start webhook receiver
+CMD ["node", "webhook-receiver.js"]
