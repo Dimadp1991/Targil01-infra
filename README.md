@@ -2,7 +2,6 @@
 
 This repository contains a full-stack DevOps workflow including local Git hosting, CI automation, a private container registry, and GitOps-driven deployment.
 
-> **Note on Project Status:** Due to a hardware failure on my primary laptop during development, I successfully migrated the entire stack to a local PC environment. I have included a short video demonstration to showcase the functional workflow in this environment and to prove the portability of the setup.
 
 ---
 
