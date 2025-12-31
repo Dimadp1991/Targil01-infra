@@ -54,6 +54,7 @@ All ports are unique and non-overlapping:
 - 8081: ArgoCD     ->>> Port Forwarding
 - 3001: Gogs Web UI
 - 3000: Gogs
+- 9000: Webhook
 - 5432: PostgreSQL
 - 8080: Jenkins
 - 5000: zot-registry
@@ -66,6 +67,8 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/v0.12.2/manifests/install.yaml
 
 kubectl apply -f argocd-ingress.yaml
+
+kubectl rollout restart deployment -n argocd
 
 Start-Process powershell -ArgumentList "minikube tunnel" -WindowStyle Hidden
 addd 127.0.0.1  argocd.local to C:\Windows\System32\drivers\etc\hosts
