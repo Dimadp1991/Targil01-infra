@@ -23,12 +23,6 @@ To ensure a collision-free environment on a local machine, all services have bee
 
 ## 🚀 Installation & Setup
 
-### 1. Prerequisites & Host Config
-Add the following entries to your local hosts file (`C:\Windows\System32\drivers\etc\hosts`) for service resolution:
-```text
-127.0.0.1  gogs.local
-127.0.0.1  argocd.local
-```
 
 # Full stack deployment
 ```
